@@ -1,0 +1,1483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BookNook - Your Interactive Reading Companion</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'share-tech': ['"Share Tech"', 'monospace'],
+                    },
+                    colors: {
+                        'book-green': '#2A9D8F',
+                        'book-yellow': '#E9C46A',
+                        'book-orange': '#F4A261',
+                        'book-red': '#E76F51',
+                        'book-dark': '#264653',
+                        'book-light': '#F8F9FA',
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/css">
+        body {
+            font-family: 'Share Tech', monospace;
+        }
+        
+        .word-search-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 2px;
+        }
+        
+        .word-search-cell {
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        .word-search-cell.selected {
+            background-color: #E9C46A;
+            color: #264653;
+        }
+        
+        .crossword-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 30px);
+            grid-template-rows: repeat(10, 30px);
+            gap: 1px;
+        }
+        
+        .crossword-cell {
+            border: 1px solid #ccc;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .crossword-cell.filled {
+            background-color: #2A9D8F;
+            color: white;
+        }
+        
+        .crossword-cell.empty {
+            background-color: #264653;
+        }
+        
+        .crossword-number {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            font-size: 8px;
+        }
+        
+        .crossword-input {
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            border: none;
+            background: transparent;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+        
+        .crossword-input:focus {
+            outline: 2px solid #E76F51;
+        }
+        
+        .cipher-container {
+            font-family: monospace;
+            letter-spacing: 2px;
+        }
+        
+        .book-card {
+            transition: transform 0.3s ease;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .badge {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .badge::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%);
+        }
+        
+        /* Progress bar animation */
+        @keyframes progress {
+            0% { width: 0; }
+            100% { width: 100%; }
+        }
+        
+        .progress-animate {
+            animation: progress 1s ease-out;
+        }
+    </style>
+</head>
+<body class="bg-book-light text-book-dark">
+    <!-- Header -->
+    <header class="bg-book-dark text-white py-4 shadow-md">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row justify-between items-center">
+            <div class="flex items-center mb-4 md:mb-0">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-book-orange mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <h1 class="text-3xl font-bold">BookNook</h1>
+            </div>
+            <nav>
+                <ul class="flex space-x-6">
+                    <li><a href="#reviews" class="hover:text-book-orange transition-colors">Reviews</a></li>
+                    <li><a href="#reading-list" class="hover:text-book-orange transition-colors">My List</a></li>
+                    <li><a href="#book-of-week" class="hover:text-book-orange transition-colors">Book of the Week</a></li>
+                    <li><a href="#puzzles" class="hover:text-book-orange transition-colors">Puzzles</a></li>
+                    <li><a href="#challenges" class="hover:text-book-orange transition-colors">Challenges</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="py-12 bg-gradient-to-r from-book-green to-book-dark text-white">
+        <div class="container mx-auto px-4 flex flex-col md:flex-row items-center">
+            <div class="md:w-1/2 mb-8 md:mb-0">
+                <h2 class="text-4xl font-bold mb-4">Discover Your Next Great Read</h2>
+                <p class="text-xl mb-6">Track your reading journey, solve book-themed puzzles, and find your next favorite story.</p>
+                <div class="flex space-x-4">
+                    <button class="bg-book-orange hover:bg-book-red text-white font-bold py-2 px-6 rounded-full transition-colors">
+                        Explore Books
+                    </button>
+                    <button class="bg-transparent border-2 border-white hover:bg-white hover:text-book-dark font-bold py-2 px-6 rounded-full transition-colors">
+                        Today's Puzzles
+                    </button>
+                </div>
+            </div>
+            <div class="md:w-1/2 flex justify-center">
+                <div class="relative">
+                    <div class="absolute -top-4 -left-4 w-20 h-20 bg-book-yellow rounded-full opacity-50"></div>
+                    <div class="absolute -bottom-4 -right-4 w-16 h-16 bg-book-red rounded-full opacity-50"></div>
+                    <img src="/placeholder.svg?height=300&width=400" alt="Books illustration" class="relative z-10 rounded-lg shadow-xl">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Book of the Week -->
+    <section id="book-of-week" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Book of the Week</h2>
+                <div class="ml-4 px-3 py-1 bg-book-yellow text-book-dark rounded-full text-sm font-bold">
+                    Featured
+                </div>
+            </div>
+            
+            <div class="bg-gradient-to-r from-book-green/10 to-book-dark/10 rounded-xl p-6 shadow-lg">
+                <div class="flex flex-col md:flex-row">
+                    <div class="md:w-1/4 flex justify-center mb-6 md:mb-0">
+                        <div class="relative">
+                            <img src="/placeholder.svg?height=300&width=200" alt="Book Cover" class="rounded-lg shadow-md">
+                            <div class="absolute -top-3 -right-3 bg-book-red text-white rounded-full w-12 h-12 flex items-center justify-center font-bold shadow-lg">
+                                4.8
+                            </div>
+                        </div>
+                    </div>
+                    <div class="md:w-3/4 md:pl-8">
+                        <h3 class="text-2xl font-bold text-book-dark mb-2">The Midnight Library</h3>
+                        <p class="text-gray-600 mb-2">by Matt Haig</p>
+                        <div class="flex mb-4">
+                            <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Fiction</span>
+                            <span class="bg-book-orange/20 text-book-orange px-2 py-1 rounded text-sm mr-2">Fantasy</span>
+                            <span class="bg-book-red/20 text-book-red px-2 py-1 rounded text-sm">Philosophy</span>
+                        </div>
+                        <p class="text-gray-700 mb-6">
+                            Between life and death there is a library, and within that library, the shelves go on forever. Every book provides a chance to try another life you could have lived. To see how things would be if you had made other choices... Would you have done anything different, if you had the chance to undo your regrets?
+                        </p>
+                        <div class="mb-6">
+                            <h4 class="font-bold text-book-dark mb-2">Where to Read:</h4>
+                            <div class="flex flex-wrap gap-2">
+                                <a href="#" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition-colors">
+                                    <span class="font-bold">Free</span> - Project Gutenberg
+                                </a>
+                                <a href="#" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 transition-colors">
+                                    <span class="font-bold">Free</span> - Open Library
+                                </a>
+                                <a href="#" class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm hover:bg-orange-200 transition-colors">
+                                    <span class="font-bold">$9.99</span> - Amazon Kindle
+                                </a>
+                                <a href="#" class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm hover:bg-purple-200 transition-colors">
+                                    <span class="font-bold">$11.99</span> - Google Books
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex space-x-4">
+                            <button class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add to Reading List
+                            </button>
+                            <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-2 px-6 rounded-full transition-colors flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Preview Book
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Book Reviews & Recommendations -->
+    <section id="reviews" class="py-12 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-book-dark mb-8">Book Reviews & Recommendations</h2>
+            
+            <!-- Filter Controls -->
+            <div class="mb-8 bg-white p-4 rounded-lg shadow-sm">
+                <div class="flex flex-wrap gap-4">
+                    <div class="w-full md:w-auto">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="genre-filter">
+                            Genre
+                        </label>
+                        <select id="genre-filter" class="w-full md:w-48 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-green">
+                            <option value="">All Genres</option>
+                            <option value="fiction">Fiction</option>
+                            <option value="non-fiction">Non-Fiction</option>
+                            <option value="mystery">Mystery</option>
+                            <option value="sci-fi">Science Fiction</option>
+                            <option value="fantasy">Fantasy</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="author-filter">
+                            Author
+                        </label>
+                        <input id="author-filter" type="text" placeholder="Search by author" class="w-full md:w-48 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-green">
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="price-filter">
+                            Price
+                        </label>
+                        <select id="price-filter" class="w-full md:w-48 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-green">
+                            <option value="">All Prices</option>
+                            <option value="free">Free Only</option>
+                            <option value="paid">Paid Only</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="rating-filter">
+                            Minimum Rating
+                        </label>
+                        <select id="rating-filter" class="w-full md:w-48 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-green">
+                            <option value="1">1+ Stars</option>
+                            <option value="2">2+ Stars</option>
+                            <option value="3">3+ Stars</option>
+                            <option value="4">4+ Stars</option>
+                            <option value="5">5 Stars</option>
+                        </select>
+                    </div>
+                    <div class="w-full md:w-auto flex items-end">
+                        <button id="apply-filters" class="bg-book-green hover:bg-book-dark text-white font-bold px-4 py-2 rounded transition-colors">
+                            Apply Filters
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Book Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Book Card 1 -->
+                <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                    <div class="relative">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Book Cover" class="w-full h-48 object-cover">
+                        <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                            4.5 ★
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-xl mb-1">The Silent Patient</h3>
+                        <p class="text-gray-600 mb-2">by Alex Michaelides</p>
+                        <div class="flex mb-3">
+                            <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Thriller</span>
+                            <span class="bg-book-red/20 text-book-red px-2 py-1 rounded text-sm">Mystery</span>
+                        </div>
+                        <p class="text-gray-700 text-sm mb-4">
+                            Alicia Berenson's life is seemingly perfect. A famous painter married to an in-demand fashion photographer, she lives in a grand house overlooking a park in one of London's most desirable areas. One evening her husband Gabriel returns home late from a fashion shoot, and Alicia shoots him five times in the face, and then never speaks another word.
+                        </p>
+                        <div class="mb-4">
+                            <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <a href="#" class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors">
+                                    Amazon Kindle
+                                </a>
+                                <a href="#" class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs hover:bg-purple-200 transition-colors">
+                                    Google Books
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Add to List
+                            </button>
+                            <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Full Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Card 2 -->
+                <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                    <div class="relative">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Book Cover" class="w-full h-48 object-cover">
+                        <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                            4.2 ★
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-xl mb-1">Project Hail Mary</h3>
+                        <p class="text-gray-600 mb-2">by Andy Weir</p>
+                        <div class="flex mb-3">
+                            <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Sci-Fi</span>
+                            <span class="bg-book-orange/20 text-book-orange px-2 py-1 rounded text-sm">Adventure</span>
+                        </div>
+                        <p class="text-gray-700 text-sm mb-4">
+                            Ryland Grace is the sole survivor on a desperate, last-chance mission—and if he fails, humanity and the Earth itself will perish. Except that right now, he doesn't know that. He can't even remember his own name, let alone the nature of his assignment or how to complete it.
+                        </p>
+                        <div class="mb-4">
+                            <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <a href="#" class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs hover:bg-green-200 transition-colors">
+                                    <span class="font-bold">Free</span> - Library
+                                </a>
+                                <a href="#" class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors">
+                                    Amazon Kindle
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Add to List
+                            </button>
+                            <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Full Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Book Card 3 -->
+                <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+                    <div class="relative">
+                        <img src="/placeholder.svg?height=250&width=400" alt="Book Cover" class="w-full h-48 object-cover">
+                        <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                            4.7 ★
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-xl mb-1">Educated</h3>
+                        <p class="text-gray-600 mb-2">by Tara Westover</p>
+                        <div class="flex mb-3">
+                            <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Memoir</span>
+                            <span class="bg-book-red/20 text-book-red px-2 py-1 rounded text-sm">Biography</span>
+                        </div>
+                        <p class="text-gray-700 text-sm mb-4">
+                            Born to survivalists in the mountains of Idaho, Tara Westover was seventeen the first time she set foot in a classroom. Her family was so isolated from mainstream society that there was no one to ensure the children received an education, and no one to intervene when one of Tara's older brothers became violent.
+                        </p>
+                        <div class="mb-4">
+                            <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                            <div class="flex flex-wrap gap-1">
+                                <a href="#" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs hover:bg-blue-200 transition-colors">
+                                    <span class="font-bold">Free</span> - Open Library
+                                </a>
+                                <a href="#" class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs hover:bg-purple-200 transition-colors">
+                                    Google Books
+                                </a>
+                            </div>
+                        </div>
+                        <div class="flex justify-between">
+                            <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Add to List
+                            </button>
+                            <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                                Full Review
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-8 text-center">
+                <button class="bg-book-dark hover:bg-book-green text-white font-bold py-2 px-8 rounded-full transition-colors">
+                    Load More Books
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reading List Manager -->
+    <section id="reading-list" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-book-dark mb-8">My Reading List</h2>
+            
+            <!-- Reading List Tabs -->
+            <div class="mb-8">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8">
+                        <button class="reading-tab border-book-green text-book-green border-b-2 py-2 px-1 font-medium text-sm" data-tab="to-read">
+                            To Read
+                        </button>
+                        <button class="reading-tab text-gray-500 hover:text-book-green hover:border-book-green/50 border-transparent border-b-2 py-2 px-1 font-medium text-sm" data-tab="reading">
+                            Currently Reading
+                        </button>
+                        <button class="reading-tab text-gray-500 hover:text-book-green hover:border-book-green/50 border-transparent border-b-2 py-2 px-1 font-medium text-sm" data-tab="completed">
+                            Completed
+                        </button>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- To Read List (Default Active) -->
+            <div id="to-read-list" class="reading-list-content">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Book Item 1 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">Dune</h3>
+                                <p class="text-gray-600 text-sm mb-2">by Frank Herbert</p>
+                                <div class="flex mb-3">
+                                    <span class="bg-book-green/20 text-book-green px-2 py-0.5 rounded text-xs">Sci-Fi</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Start Reading
+                                    </button>
+                                    <button class="text-gray-400 hover:text-book-red">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book Item 2 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">The Hobbit</h3>
+                                <p class="text-gray-600 text-sm mb-2">by J.R.R. Tolkien</p>
+                                <div class="flex mb-3">
+                                    <span class="bg-book-orange/20 text-book-orange px-2 py-0.5 rounded text-xs">Fantasy</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Start Reading
+                                    </button>
+                                    <button class="text-gray-400 hover:text-book-red">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book Item 3 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">Atomic Habits</h3>
+                                <p class="text-gray-600 text-sm mb-2">by James Clear</p>
+                                <div class="flex mb-3">
+                                    <span class="bg-book-red/20 text-book-red px-2 py-0.5 rounded text-xs">Self-Help</span>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Start Reading
+                                    </button>
+                                    <button class="text-gray-400 hover:text-book-red">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-500 text-sm">You have 3 books in your "To Read" list</p>
+                </div>
+            </div>
+            
+            <!-- Currently Reading List (Initially Hidden) -->
+            <div id="reading-list" class="reading-list-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Book Item 1 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">The Midnight Library</h3>
+                                <p class="text-gray-600 text-sm mb-2">by Matt Haig</p>
+                                <div class="mb-2">
+                                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                        <span>Progress</span>
+                                        <span>42%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-book-green h-2.5 rounded-full" style="width: 42%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Update Progress
+                                    </button>
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Mark Complete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book Item 2 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">Sapiens</h3>
+                                <p class="text-gray-600 text-sm mb-2">by Yuval Noah Harari</p>
+                                <div class="mb-2">
+                                    <div class="flex justify-between text-xs text-gray-600 mb-1">
+                                        <span>Progress</span>
+                                        <span>78%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                                        <div class="bg-book-green h-2.5 rounded-full" style="width: 78%"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Update Progress
+                                    </button>
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Mark Complete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-500 text-sm">You are currently reading 2 books</p>
+                </div>
+            </div>
+            
+            <!-- Completed List (Initially Hidden) -->
+            <div id="completed-list" class="reading-list-content hidden">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Book Item 1 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">To Kill a Mockingbird</h3>
+                                <p class="text-gray-600 text-sm mb-2">by Harper Lee</p>
+                                <div class="flex mb-2">
+                                    <div class="text-book-yellow">★★★★★</div>
+                                </div>
+                                <p class="text-gray-500 text-xs mb-3">Completed on May 10, 2025</p>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Write Review
+                                    </button>
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Read Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Book Item 2 -->
+                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+                        <div class="flex p-4">
+                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+                            <div class="ml-4 flex-1">
+                                <h3 class="font-bold text-lg mb-1">1984</h3>
+                                <p class="text-gray-600 text-sm mb-2">by George Orwell</p>
+                                <div class="flex mb-2">
+                                    <div class="text-book-yellow">★★★★☆</div>
+                                </div>
+                                <p class="text-gray-500 text-xs mb-3">Completed on April 22, 2025</p>
+                                <div class="flex justify-between items-center">
+                                    <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Write Review
+                                    </button>
+                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                                        Read Again
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-gray-500 text-sm">You have completed 2 books</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Puzzles Section -->
+    <section id="puzzles" class="py-12 bg-gradient-to-r from-book-green/10 to-book-dark/10">
+        <div class="container mx-auto px-4">
+            <div class="flex items-center mb-8">
+                <h2 class="text-3xl font-bold text-book-dark">Book Puzzles</h2>
+                <div class="ml-4 px-3 py-1 bg-book-red text-white rounded-full text-sm font-bold">
+                    Weekly Challenge
+                </div>
+            </div>
+            
+            <p class="text-gray-700 mb-8">
+                Test your knowledge of "The Midnight Library" with these fun puzzles. Complete all three to earn a special badge!
+            </p>
+            
+            <!-- Puzzle Tabs -->
+            <div class="mb-8">
+                <div class="border-b border-gray-200">
+                    <nav class="-mb-px flex space-x-8">
+                        <button class="puzzle-tab border-book-red text-book-red border-b-2 py-2 px-1 font-medium text-sm" data-tab="codebreaker">
+                            Codebreaker
+                        </button>
+                        <button class="puzzle-tab text-gray-500 hover:text-book-red hover:border-book-red/50 border-transparent border-b-2 py-2 px-1 font-medium text-sm" data-tab="wordsearch">
+                            Word Search
+                        </button>
+                        <button class="puzzle-tab text-gray-500 hover:text-book-red hover:border-book-red/50 border-transparent border-b-2 py-2 px-1 font-medium text-sm" data-tab="crossword">
+                            Crossword
+                        </button>
+                    </nav>
+                </div>
+            </div>
+            
+            <!-- Codebreaker Puzzle (Default Active) -->
+            <div id="codebreaker-puzzle" class="puzzle-content bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-book-dark mb-4">Decode the Secret Quote</h3>
+                <p class="text-gray-700 mb-4">
+                    This quote from "The Midnight Library" has been encrypted using a Caesar cipher (each letter shifted by a certain number). Can you crack the code?
+                </p>
+                
+                <div class="bg-gray-100 p-4 rounded-lg mb-6 cipher-container">
+                    <p class="text-center text-lg font-mono">
+                        WKH RQOB ZDB WR OHDUQ LV WR OLYH
+                    </p>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="shift-value">
+                        Shift Value (1-25):
+                    </label>
+                    <input id="shift-value" type="number" min="1" max="25" value="3" class="w-full md:w-48 border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-red">
+                    <button id="apply-shift" class="mt-2 bg-book-red hover:bg-book-dark text-white font-bold py-2 px-4 rounded transition-colors">
+                        Apply Shift
+                    </button>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="decoded-message">
+                        Your Solution:
+                    </label>
+                    <input id="decoded-message" type="text" placeholder="Type your decoded message here" class="w-full border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-book-red">
+                    <button id="check-cipher" class="mt-2 bg-book-green hover:bg-book-dark text-white font-bold py-2 px-4 rounded transition-colors">
+                        Check Solution
+                    </button>
+                </div>
+                
+                <div id="cipher-result" class="hidden p-4 rounded-lg mb-4">
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                
+                <div class="flex justify-between items-center">
+                    <button id="cipher-hint" class="text-book-orange hover:text-book-red transition-colors">
+                        Get a Hint
+                    </button>
+                    <div class="text-gray-500 text-sm">
+                        <span id="cipher-attempts">0</span> attempts
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Word Search Puzzle (Initially Hidden) -->
+            <div id="wordsearch-puzzle" class="puzzle-content hidden bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-book-dark mb-4">Find the Hidden Words</h3>
+                <p class="text-gray-700 mb-4">
+                    Find all the character names and locations from "The Midnight Library" hidden in this word search.
+                </p>
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-2/3">
+                        <div class="word-search-grid mb-4">
+                            <!-- Will be filled by JavaScript -->
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button id="wordsearch-hint" class="text-book-orange hover:text-book-red transition-colors">
+                                Highlight a Word
+                            </button>
+                            <button id="wordsearch-reset" class="text-gray-500 hover:text-book-dark transition-colors">
+                                Reset Selection
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/3">
+                        <h4 class="font-bold text-book-dark mb-2">Words to Find:</h4>
+                        <ul id="word-list" class="space-y-2">
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                NORA
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                LIBRARY
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                MIDNIGHT
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                HUGO
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                BEDFORD
+                            </li>
+                            <li class="flex items-center">
+                                <span class="w-4 h-4 inline-block border border-gray-300 rounded-sm mr-2"></span>
+                                MRS ELM
+                            </li>
+                        </ul>
+                        
+                        <div id="wordsearch-result" class="mt-6 hidden p-4 rounded-lg">
+                            <!-- Will be filled by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Crossword Puzzle (Initially Hidden) -->
+            <div id="crossword-puzzle" class="puzzle-content hidden bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-book-dark mb-4">Book-Themed Crossword</h3>
+                <p class="text-gray-700 mb-4">
+                    Test your knowledge of "The Midnight Library" with this crossword puzzle.
+                </p>
+                
+                <div class="flex flex-col md:flex-row gap-6">
+                    <div class="md:w-1/2">
+                        <div class="crossword-grid mb-4">
+                            <!-- Will be filled by JavaScript -->
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <button id="crossword-hint" class="text-book-orange hover:text-book-red transition-colors">
+                                Reveal a Letter
+                            </button>
+                            <button id="crossword-check" class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded transition-colors">
+                                Check Answers
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="md:w-1/2">
+                        <div class="mb-6">
+                            <h4 class="font-bold text-book-dark mb-2">Across:</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-sm">
+                                <li>Main character's surname (4)</li>
+                                <li>The place between life and death (7)</li>
+                                <li>Nora's profession that could have been (9)</li>
+                            </ol>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold text-book-dark mb-2">Down:</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-sm">
+                                <li>The librarian's name (3)</li>
+                                <li>Nora's brother (3)</li>
+                                <li>Author's surname (4)</li>
+                            </ol>
+                        </div>
+                        
+                        <div id="crossword-result" class="mt-6 hidden p-4 rounded-lg">
+                            <!-- Will be filled by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reading Challenges -->
+    <section id="challenges" class="py-12 bg-white">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-book-dark mb-8">Reading Challenges</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <!-- Monthly Challenge -->
+                <div class="bg-gradient-to-r from-book-green/10 to-book-dark/10 rounded-xl p-6 shadow-md">
+                    <div class="flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-book-green mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                        </svg>
+                        <h3 class="text-xl font-bold">May Reading Challenge</h3>
+                    </div>
+                    
+                    <p class="text-gray-700 mb-4">
+                        Read 5 books from different genres this month to earn the "Genre Explorer" badge.
+                    </p>
+                    
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-1">
+                            <span>Progress</span>
+                            <span>2/5 books</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-book-green h-2.5 rounded-full" style="width: 40%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h4 class="font-bold text-book-dark text-sm mb-2">Genres Read:</h4>
+                        <div class="flex flex-wrap gap-2">
+                            <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-xs">Mystery ✓</span>
+                            <span class="bg-book-orange/20 text-book-orange px-2 py-1 rounded text-xs">Biography ✓</span>
+                            <span class="bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs">Sci-Fi</span>
+                            <span class="bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs">Fantasy</span>
+                            <span class="bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs">Historical</span>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <button class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-4 rounded-full text-sm transition-colors">
+                            View Details
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Badges Collection -->
+                <div class="bg-gradient-to-r from-book-yellow/10 to-book-orange/10 rounded-xl p-6 shadow-md">
+                    <div class="flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-book-yellow mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                        </svg>
+                        <h3 class="text-xl font-bold">Your Badges</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="badge bg-book-green text-white rounded-lg p-3 text-center shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                            </svg>
+                            <p class="text-xs font-bold">Mystery Solver</p>
+                        </div>
+                        
+                        <div class="badge bg-book-orange text-white rounded-lg p-3 text-center shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                            </svg>
+                            <p class="text-xs font-bold">Bookworm</p>
+                        </div>
+                        
+                        <div class="badge bg-gray-300 text-gray-500 rounded-lg p-3 text-center shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-xs font-bold">Genre Explorer</p>
+                            <p class="text-xs">(In Progress)</p>
+                        </div>
+                    </div>
+                    
+                    <div class="text-right">
+                        <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-2 px-4 rounded-full text-sm transition-colors">
+                            View All Badges
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Book Access Alerts -->
+            <div class="bg-book-red/10 rounded-xl p-6 shadow-md">
+                <div class="flex items-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-book-red mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.  stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <h3 class="text-xl font-bold">Book Alerts</h3>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-book-green">
+                            <h4 class="font-bold text-book-dark mb-2">Free This Week!</h4>
+                            <p class="text-gray-700 text-sm mb-2">
+                                "The Alchemist" by Paulo Coelho is free on Project Gutenberg until May 20th.
+                            </p>
+                            <a href="#" class="text-book-green hover:text-book-dark font-bold text-sm transition-colors">
+                                Read Now →
+                            </a>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg p-4 border-l-4 border-book-orange">
+                            <h4 class="font-bold text-book-dark mb-2">Limited Time Offer!</h4>
+                            <p class="text-gray-700 text-sm mb-2">
+                                "Educated" by Tara Westover is 70% off on Kindle this weekend only.
+                            </p>
+                            <a href="#" class="text-book-orange hover:text-book-dark font-bold text-sm transition-colors">
+                                Get the Deal →
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <button class="text-book-red hover:text-book-dark transition-colors text-sm font-bold">
+                            Manage Alert Preferences
+                        </button>
+                        <button class="bg-book-red hover:bg-book-dark text-white font-bold py-2 px-4 rounded-full text-sm transition-colors">
+                            View All Alerts
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-book-dark text-white py-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between">
+                <div class="mb-6 md:mb-0">
+                    <div class="flex items-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-book-orange mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                        </svg>
+                        <h2 class="text-2xl font-bold">BookNook</h2>
+                    </div>
+                    <p class="text-gray-400 mb-4">
+                        Your interactive reading companion. Discover, track, and engage with books in a whole new way.
+                    </p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-book-orange transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-book-orange transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                            </svg>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-book-orange transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                            </svg>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-8">
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Features</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#reviews" class="text-gray-400 hover:text-book-orange transition-colors">Book Reviews</a></li>
+                            <li><a href="#reading-list" class="text-gray-400 hover:text-book-orange transition-colors">Reading List</a></li>
+                            <li><a href="#book-of-week" class="text-gray-400 hover:text-book-orange transition-colors">Book of the Week</a></li>
+                            <li><a href="#puzzles" class="text-gray-400 hover:text-book-orange transition-colors">Book Puzzles</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Resources</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Reading Tips</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Author Spotlights</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Genre Guides</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Book Clubs</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h3 class="text-lg font-bold mb-4">Company</h3>
+                        <ul class="space-y-2">
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">About Us</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Terms of Service</a></li>
+                            <li><a href="#" class="text-gray-400 hover:text-book-orange transition-colors">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
+                <p>&copy; 2025 BookNook. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // DOM Elements
+        document.addEventListener('DOMContentLoaded', function() {
+            // Reading List Tabs
+            const readingTabs = document.querySelectorAll('.reading-tab');
+            const readingContents = document.querySelectorAll('.reading-list-content');
+            
+            readingTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    readingTabs.forEach(t => {
+                        t.classList.remove('border-book-green', 'text-book-green');
+                        t.classList.add('text-gray-500', 'border-transparent');
+                    });
+                    
+                    // Add active class to clicked tab
+                    tab.classList.remove('text-gray-500', 'border-transparent');
+                    tab.classList.add('border-book-green', 'text-book-green');
+                    
+                    // Hide all content
+                    readingContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Show corresponding content
+                    const tabName = tab.getAttribute('data-tab');
+                    document.getElementById(`${tabName}-list`).classList.remove('hidden');
+                });
+            });
+            
+            // Puzzle Tabs
+            const puzzleTabs = document.querySelectorAll('.puzzle-tab');
+            const puzzleContents = document.querySelectorAll('.puzzle-content');
+            
+            puzzleTabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs
+                    puzzleTabs.forEach(t => {
+                        t.classList.remove('border-book-red', 'text-book-red');
+                        t.classList.add('text-gray-500', 'border-transparent');
+                    });
+                    
+                    // Add active class to clicked tab
+                    tab.classList.remove('text-gray-500', 'border-transparent');
+                    tab.classList.add('border-book-red', 'text-book-red');
+                    
+                    // Hide all content
+                    puzzleContents.forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Show corresponding content
+                    const tabName = tab.getAttribute('data-tab');
+                    document.getElementById(`${tabName}-puzzle`).classList.remove('hidden');
+                });
+            });
+            
+            // Codebreaker Puzzle
+            const shiftInput = document.getElementById('shift-value');
+            const applyShiftBtn = document.getElementById('apply-shift');
+            const decodedInput = document.getElementById('decoded-message');
+            const checkCipherBtn = document.getElementById('check-cipher');
+            const cipherResult = document.getElementById('cipher-result');
+            const cipherHintBtn = document.getElementById('cipher-hint');
+            const cipherAttemptsEl = document.getElementById('cipher-attempts');
+            
+            let cipherAttempts = 0;
+            const correctAnswer = "THE ONLY WAY TO LEARN IS TO LIVE";
+            const encryptedMessage = "WKH RQOB ZDB WR OHDUQ LV WR OLYH";
+            
+            applyShiftBtn.addEventListener('click', () => {
+                const shift = parseInt(shiftInput.value);
+                const decrypted = caesarDecrypt(encryptedMessage, shift);
+                decodedInput.value = decrypted;
+            });
+            
+            checkCipherBtn.addEventListener('click', () => {
+                cipherAttempts++;
+                cipherAttemptsEl.textContent = cipherAttempts;
+                
+                const userAnswer = decodedInput.value.trim().toUpperCase();
+                if (userAnswer === correctAnswer) {
+                    cipherResult.innerHTML = `
+                        <div class="bg-green-100 text-green-800 p-4 rounded-lg">
+                            <p class="font-bold">Correct! You've solved the cipher.</p>
+                            <p>The quote is: "${correctAnswer}"</p>
+                        </div>
+                    `;
+                    cipherResult.classList.remove('hidden');
+                } else {
+                    cipherResult.innerHTML = `
+                        <div class="bg-red-100 text-red-800 p-4 rounded-lg">
+                            <p class="font-bold">Not quite right. Try again!</p>
+                            <p>Hint: Make sure you've applied the correct shift value.</p>
+                        </div>
+                    `;
+                    cipherResult.classList.remove('hidden');
+                }
+            });
+            
+            cipherHintBtn.addEventListener('click', () => {
+                cipherResult.innerHTML = `
+                    <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
+                        <p class="font-bold">Hint:</p>
+                        <p>The correct shift value is 3. This is a Caesar cipher where each letter is shifted 3 positions in the alphabet.</p>
+                    </div>
+                `;
+                cipherResult.classList.remove('hidden');
+            });
+            
+            // Word Search Puzzle
+            const wordSearchGrid = document.querySelector('.word-search-grid');
+            const wordList = document.getElementById('word-list');
+            const wordSearchHintBtn = document.getElementById('wordsearch-hint');
+            const wordSearchResetBtn = document.getElementById('wordsearch-reset');
+            const wordSearchResult = document.getElementById('wordsearch-result');
+            
+            // Create word search grid
+            const grid = [
+                ['N', 'L', 'I', 'B', 'R', 'A', 'R', 'Y', 'Q', 'Z'],
+                ['O', 'X', 'M', 'E', 'D', 'F', 'O', 'R', 'D', 'B'],
+                ['R', 'P', 'I', 'D', 'G', 'H', 'J', 'K', 'L', 'E'],
+                ['A', 'M', 'D', 'F', 'T', 'Y', 'U', 'I', 'O', 'D'],
+                ['M', 'I', 'N', 'O', 'R', 'A', 'S', 'D', 'F', 'F'],
+                ['R', 'D', 'I', 'R', 'W', 'E', 'R', 'T', 'Y', 'O'],
+                ['S', 'N', 'G', 'D', 'Q', 'W', 'E', 'R', 'T', 'R'],
+                ['E', 'I', 'H', 'S', 'A', 'S', 'D', 'F', 'G', 'D'],
+                ['L', 'G', 'T', 'A', 'Z', 'X', 'C', 'V', 'B', 'H'],
+                ['M', 'H', 'U', 'G', 'O', 'Q', 'W', 'E', 'R', 'T']
+            ];
+            
+            // Words to find and their positions
+            const words = [
+                { word: 'NORA', found: false },
+                { word: 'LIBRARY', found: false },
+                { word: 'MIDNIGHT', found: false },
+                { word: 'HUGO', found: false },
+                { word: 'BEDFORD', found: false },
+                { word: 'MRS ELM', found: false }
+            ];
+            
+            // Create grid cells
+            for (let i = 0; i < grid.length; i++) {
+                for (let j = 0; j < grid[i].length; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'word-search-cell';
+                    cell.textContent = grid[i][j];
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    
+                    cell.addEventListener('click', () => {
+                        cell.classList.toggle('selected');
+                        checkSelectedWords();
+                    });
+                    
+                    wordSearchGrid.appendChild(cell);
+                }
+            }
+            
+            function checkSelectedWords() {
+                const selectedCells = document.querySelectorAll('.word-search-cell.selected');
+                if (selectedCells.length < 3) return;
+                
+                // Get selected letters
+                let selectedWord = '';
+                selectedCells.forEach(cell => {
+                    selectedWord += cell.textContent;
+                });
+                
+                // Check if it matches any word
+                words.forEach((wordObj, index) => {
+                    if (selectedWord === wordObj.word.replace(' ', '') && !wordObj.found) {
+                        wordObj.found = true;
+                        
+                        // Update word list
+                        const listItems = wordList.querySelectorAll('li');
+                        listItems[index].querySelector('span').classList.add('bg-book-green');
+                        
+                        // Keep cells highlighted
+                        selectedCells.forEach(cell => {
+                            cell.classList.add('bg-book-green', 'text-white');
+                            cell.classList.remove('selected');
+                        });
+                        
+                        // Check if all words found
+                        if (words.every(w => w.found)) {
+                            wordSearchResult.innerHTML = `
+                                <div class="bg-green-100 text-green-800 p-4 rounded-lg">
+                                    <p class="font-bold">Congratulations!</p>
+                                    <p>You've found all the words in the word search!</p>
+                                </div>
+                            `;
+                            wordSearchResult.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+            
+            wordSearchHintBtn.addEventListener('click', () => {
+                // Find first unfound word
+                const unfoundWord = words.find(w => !w.found);
+                if (unfoundWord) {
+                    wordSearchResult.innerHTML = `
+                        <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
+                            <p class="font-bold">Hint:</p>
+                            <p>Look for the word "${unfoundWord.word}" in the grid.</p>
+                        </div>
+                    `;
+                    wordSearchResult.classList.remove('hidden');
+                }
+            });
+            
+            wordSearchResetBtn.addEventListener('click', () => {
+                document.querySelectorAll('.word-search-cell.selected').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+            });
+            
+            // Crossword Puzzle
+            const crosswordGrid = document.querySelector('.crossword-grid');
+            const crosswordHintBtn = document.getElementById('crossword-hint');
+            const crosswordCheckBtn = document.getElementById('crossword-check');
+            const crosswordResult = document.getElementById('crossword-result');
+            
+            // Crossword layout (0 = empty, 1 = fillable)
+            const crosswordLayout = [
+                [1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1, 1, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+                [1, 1, 1, 1, 1, 1, 1, 1, 1, 0]
+            ];
+            
+            // Crossword answers
+            const crosswordAnswers = {
+                'across': {
+                    '1': 'SEED',
+                    '6': 'LIBRARY',
+                    '10': 'SWIMMER'
+                },
+                'down': {
+                    '1': 'ELM',
+                    '2': 'JOE',
+                    '7': 'HAIG'
+                }
+            };
+            
+            // Cell numbers
+            const cellNumbers = {
+                '0,0': 1,
+                '0,1': 2,
+                '3,1': 3,
+                '6,0': 6,
+                '6,1': 7,
+                '9,0': 10
+            };
+            
+            // Create crossword grid
+            for (let i = 0; i < crosswordLayout.length; i++) {
+                for (let j = 0; j < crosswordLayout[i].length; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = crosswordLayout[i][j] === 1 ? 'crossword-cell filled' : 'crossword-cell empty';
+                    
+                    if (crosswordLayout[i][j] === 1) {
+                        // Add cell number if needed
+                        if (cellNumbers[`${i},${j}`]) {
+                            const numberSpan = document.createElement('span');
+                            numberSpan.className = 'crossword-number';
+                            numberSpan.textContent = cellNumbers[`${i},${j}`];
+                            cell.appendChild(numberSpan);
+                        }
+                        
+                        // Add input field
+                        const input = document.createElement('input');
+                        input.className = 'crossword-input';
+                        input.maxLength = 1;
+                        input.dataset.row = i;
+                        input.dataset.col = j;
+                        cell.appendChild(input);
+                    }
+                    
+                    crosswordGrid.appendChild(cell);
+                }
+            }
+            
+            crosswordHintBtn.addEventListener('click', () => {
+                // Find a random empty cell and fill it
+                const emptyInputs = Array.from(document.querySelectorAll('.crossword-input')).filter(input => !input.value);
+                if (emptyInputs.length > 0) {
+                    const randomInput = emptyInputs[Math.floor(Math.random() * emptyInputs.length)];
+                    const row = parseInt(randomInput.dataset.row);
+                    const col = parseInt(randomInput.dataset.col);
+                    
+                    // Find which word this cell belongs to
+                    let letter = '';
+                    
+                    // Check across words
+                    for (const [clueNum, answer] of Object.entries(crosswordAnswers.across)) {
+                        const startCell = Object.entries(cellNumbers).find(([coords, num]) => num === parseInt(clueNum));
+                        if (startCell) {
+                            const [startCoords, _] = startCell;
+                            const [startRow, startCol] = startCoords.split(',').map(Number);
+                            
+                            if (row === startRow && col >= startCol && col < startCol + answer.length) {
+                                letter = answer[col - startCol];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Check down words if letter not found
+                    if (!letter) {
+                        for (const [clueNum, answer] of Object.entries(crosswordAnswers.down)) {
+                            const startCell = Object.entries(cellNumbers).find(([coords, num]) => num === parseInt(clueNum));
+                            if (startCell) {
+                                const [startCoords, _] = startCell;
+                                const [startRow, startCol] = startCoords.split(',').map(Number);
+                                
+                                if (col === startCol && row >= startRow && row < startRow + answer.length) {
+                                    letter = answer[row - startRow];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (letter) {
+                        randomInput.value = letter;
+                        randomInput.classList.add('bg-book-yellow');
+                    }
+                }
+            });
+            
+            crosswordCheckBtn.addEventListener('click', () => {
+                let allCorrect = true;
+                const inputs = document.querySelectorAll('.crossword-input');
+                
+                inputs.forEach(input => {
+                    const row = parseInt(input.dataset.row);
+                    const col = parseInt(input.dataset.col);
+                    let correctLetter = '';
+                    
+                    // Check across words
+                    for (const [clueNum, answer] of Object.entries(crosswordAnswers.across)) {
+                        const startCell = Object.entries(cellNumbers).find(([coords, num]) => num === parseInt(clueNum));
+                        if (startCell) {
+                            const [startCoords, _] = startCell;
+                            const [startRow, startCol] = startCoords.split(',').map(Number);
+                            
+                            if (row === startRow && col >= startCol && col < startCol + answer.length) {
+                                correctLetter = answer[col - startCol];
+                                break;
+                            }
+                        }
+                    }
+                    
+                    // Check down words if letter not found
+                    if (!correctLetter) {
+                        for (const [clueNum, answer] of Object.entries(crosswordAnswers.down)) {
+                            const startCell = Object.entries(cellNumbers).find(([coords, num]) => num === parseInt(clueNum));
+                            if (startCell) {
+                                const [startCoords, _] = startCell;
+                                const [startRow, startCol] = startCoords.split(',').map(Number);
+                                
+                                if (col === startCol && row >= startRow && row < startRow + answer.length) {
+                                    correctLetter = answer[row - startRow];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    
+                    if (input.value.toUpperCase() === correctLetter) {
+                        input.classList.add('bg-green-100');
+                        input.classList.remove('bg-red-100');
+                    } else {
+                        input.classList.add('bg-red-100');
+                        input.classList.remove('bg-green-100');
+                        allCorrect = false;
+                    }
+                });
+                
+                if (allCorrect) {
+                    crosswordResult.innerHTML = `
+                        <div class="bg-green-100 text-green-800 p-4 rounded-lg">
+                            <p class="font-bold">Congratulations!</p>
+                            <p>You've solved the crossword puzzle correctly!</p>
+                        </div>
+                    `;
+                    crosswordResult.classList.remove('hidden');
+                } else {
+                    crosswordResult.innerHTML = `
+                        <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg">
+                            <p class="font-bold">Almost there!</p>
+                            <p>Some answers are incorrect. Red cells need to be fixed.</p>
+                        </div>
+                    `;
+                    crosswordResult.classList.remove('hidden');
+                }
+            });
+            
+            // Helper function for Caesar cipher
+            function caesarDecrypt(text, shift) {
+                return text.split('').map(char => {
+                    if (char === ' ') return ' ';
+                    const code = char.charCodeAt(0);
+                    if (code < 65 || code > 90) return char; // Not A-Z
+                    
+                    let decrypted = code - shift;
+                    if (decrypted < 65) decrypted += 26;
+                    
+                    return String.fromCharCode(decrypted);
+                }).join('');
+            }
+        });
+    </script>
+</body>
+</html>
