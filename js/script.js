@@ -238,35 +238,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
       completedList.forEach((book, idx) => {
         completedGrid.innerHTML += `
-        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-          <div class="flex p-4">
-            <img src="${book.cover || "/placeholder.svg?height=120&width=80"}" alt="Book Cover" class="w-20 h-30 object-cover rounded">
-            <div class="ml-4 flex-1">
-              <h3 class="font-bold text-lg mb-1">${book.title}</h3>
-              <p class="text-gray-600 text-sm mb-2">by ${book.author}</p>
-              <div class="flex mb-2">
-                <div class="text-book-yellow">★★★★★</div>
-              </div>
-              <p class="text-gray-500 text-xs mb-3">Completed on ${book.completedDate}</p>
-              <div class="flex justify-between items-center">
-                <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
-                  Write Review
-                </button>
-                <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors read-again-btn" data-idx="${idx}">
-                  Read Again
-                </button>
+          <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <div class="flex p-4">
+              <img src="${book.cover || "/placeholder.svg?height=120&width=80"}" alt="Book Cover" class="w-20 h-30 object-cover rounded">
+              <div class="ml-4 flex-1">
+                <h3 class="font-bold text-lg mb-1">${book.title}</h3>
+                <p class="text-gray-600 text-sm mb-2">by ${book.author}</p>
+                <div class="flex mb-2">
+                  <div class="text-book-yellow">★★★★★</div>
+                </div>
+                <p class="text-gray-500 text-xs mb-3">Completed on ${book.completedDate}</p>
+                <div class="flex justify-between items-center">
+                  <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                    Write Review
+                  </button>
+                  <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors read-again-btn" data-idx="${idx}">
+                    Read Again
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      `
+        `
       })
 
-      // Update count text
-      const countText = container.querySelector("p.text-gray-500")
-      if (countText) {
-        countText.textContent = `You have completed ${completedList.length} book${completedList.length !== 1 ? "s" : ""}`
-      }
+    // Update the completed count dynamically
+    const countText = document.getElementById("completed-count")
+    if (countText) {
+      countText.textContent = completedList.length === 1
+        ? "You have completed 1 book"
+        : `You have completed ${completedList.length} books`
+    }
 
       // Add event listeners for Read Again buttons
       completedGrid.querySelectorAll(".read-again-btn").forEach((btn) => {
