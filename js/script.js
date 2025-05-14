@@ -813,4 +813,183 @@ document.addEventListener("DOMContentLoaded", () => {
       card.style.display = showCard ? "" : "none"
     })
   })
+
+  // Load More Books functionality
+  const loadMoreBooksBtn = document.querySelector(".book-reviews .mt-8 button")
+  if (loadMoreBooksBtn) {
+    // Track if additional books have been loaded
+    let additionalBooksLoaded = false
+
+    loadMoreBooksBtn.addEventListener("click", () => {
+      if (additionalBooksLoaded) {
+        alert("No more books to load at this time.")
+        return
+      }
+
+      const bookGrid = document.querySelector(".book-reviews .grid")
+      if (bookGrid) {
+        // Create HTML for 3 additional books
+        const additionalBooks = `
+          <!-- Book Card 4 -->
+          <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+            <div class="relative">
+              <img src="images/verity.jpg" alt="Book Cover" class="rounded-lg shadow-md h-full w-full object-cover">
+              <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                4.3 ★
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="font-bold text-xl mb-1">Verity</h3>
+              <p class="text-gray-600 mb-2">by Colleen Hoover</p>
+              <div class="flex mb-3">
+                <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Thriller</span>
+                <span class="bg-book-red/20 text-book-red px-2 py-1 rounded text-sm">Romance</span>
+              </div>
+              <p class="text-gray-700 text-sm mb-4">
+                Lowen Ashleigh is a struggling writer on the brink of financial ruin when she accepts the job offer of a lifetime. Jeremy Crawford, husband of bestselling author Verity Crawford, has hired Lowen to complete the remaining books in a successful series his injured wife is unable to finish.
+              </p>
+              <div class="mb-4">
+                <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                <div class="flex flex-wrap gap-1">
+                  <a href="#" class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors">
+                    Amazon Kindle
+                  </a>
+                  <a href="#" class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs hover:bg-purple-200 transition-colors">
+                    Google Books
+                  </a>
+                </div>
+              </div>
+              <div class="flex justify-between">
+                <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Add to List
+                </button>
+                <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Full Review
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Book Card 5 -->
+          <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+            <div class="relative">
+              <img src="images/song-of-achilles.jpg" alt="Book Cover" class="rounded-lg shadow-md h-full w-full object-cover">
+              <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                4.6 ★
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="font-bold text-xl mb-1">The Song of Achilles</h3>
+              <p class="text-gray-600 mb-2">by Madeline Miller</p>
+              <div class="flex mb-3">
+                <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Historical</span>
+                <span class="bg-book-orange/20 text-book-orange px-2 py-1 rounded text-sm">Fantasy</span>
+              </div>
+              <p class="text-gray-700 text-sm mb-4">
+                Greece in the age of heroes. Patroclus, an awkward young prince, has been exiled to the court of King Peleus and his perfect son Achilles. By all rights their paths should never cross, but Achilles takes the shamed prince as his friend, and as they grow into young men skilled in the arts of war and medicine.
+              </p>
+              <div class="mb-4">
+                <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                <div class="flex flex-wrap gap-1">
+                  <a href="#" class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs hover:bg-green-200 transition-colors">
+                    <span class="font-bold">Free</span> - Library
+                  </a>
+                  <a href="#" class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors">
+                    Amazon Kindle
+                  </a>
+                </div>
+              </div>
+              <div class="flex justify-between">
+                <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Add to List
+                </button>
+                <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Full Review
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Book Card 6 -->
+          <div class="book-card bg-white rounded-lg overflow-hidden shadow-md hover:shadow-xl transition-shadow">
+            <div class="relative">
+              <img src="images/seven-husbands.jpg" alt="Book Cover" class="rounded-lg shadow-md h-full w-full object-cover">
+              <div class="absolute top-2 right-2 bg-book-yellow text-book-dark px-2 py-1 rounded font-bold">
+                4.4 ★
+              </div>
+            </div>
+            <div class="p-4">
+              <h3 class="font-bold text-xl mb-1">The Seven Husbands of Evelyn Hugo</h3>
+              <p class="text-gray-600 mb-2">by Taylor Jenkins Reid</p>
+              <div class="flex mb-3">
+                <span class="bg-book-green/20 text-book-green px-2 py-1 rounded text-sm mr-2">Fiction</span>
+                <span class="bg-book-red/20 text-book-red px-2 py-1 rounded text-sm">Historical</span>
+              </div>
+              <p class="text-gray-700 text-sm mb-4">
+                Aging and reclusive Hollywood movie icon Evelyn Hugo is finally ready to tell the truth about her glamorous and scandalous life. But when she chooses unknown magazine reporter Monique Grant for the job, no one is more astounded than Monique herself.
+              </p>
+              <div class="mb-4">
+                <h4 class="font-bold text-book-dark text-sm mb-1">Where to Read:</h4>
+                <div class="flex flex-wrap gap-1">
+                  <a href="#" class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs hover:bg-blue-200 transition-colors">
+                    <span class="font-bold">Free</span> - Open Library
+                  </a>
+                  <a href="#" class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs hover:bg-purple-200 transition-colors">
+                    Google Books
+                  </a>
+                </div>
+              </div>
+              <div class="flex justify-between">
+                <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Add to List
+                </button>
+                <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-4 rounded-full text-sm transition-colors">
+                  Full Review
+                </button>
+              </div>
+            </div>
+          </div>
+        `
+
+        // Append the new books to the grid
+        bookGrid.innerHTML += additionalBooks
+
+        // Mark as loaded
+        additionalBooksLoaded = true
+
+        // Update button text
+        loadMoreBooksBtn.textContent = "All Books Loaded"
+
+        // Add event listeners to the new "Add to List" buttons
+        document.querySelectorAll(".book-card .bg-book-green").forEach((btn) => {
+          if (!btn.hasAttribute("data-initialized")) {
+            btn.setAttribute("data-initialized", "true")
+            btn.addEventListener("click", function () {
+              const bookCard = this.closest(".book-card")
+              const title = bookCard.querySelector("h3").textContent
+              const author = bookCard.querySelector("p.text-gray-600").textContent.replace("by ", "")
+              const cover = bookCard.querySelector("img").getAttribute("src")
+
+              const book = {
+                title: title,
+                author: author,
+                cover: cover,
+              }
+
+              const readingList = JSON.parse(localStorage.getItem("readingList")) || []
+
+              if (!readingList.some((b) => b.title === book.title && b.author === book.author)) {
+                readingList.push(book)
+                localStorage.setItem("readingList", JSON.stringify(readingList))
+                alert(`"${book.title}" added to your reading list!`)
+                renderToReadList()
+              } else {
+                alert("This book is already in your reading list.")
+              }
+            })
+          }
+        })
+      }
+    })
+  }
 })
