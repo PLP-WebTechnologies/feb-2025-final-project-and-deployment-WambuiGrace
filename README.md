@@ -25,10 +25,6 @@ BookNook is a web application designed to help users discover, track, and engage
 
 ---
 
-## Folder Structure
-index.html README.md css/ styles.css images/ atomic-habits.jpg dune.jpg educated.jpg hobbit.jpg midnight-library.jpg project-hail.jpg silent-patient.jpg js/ script.js
-
----
 
 ## Getting Started
 
