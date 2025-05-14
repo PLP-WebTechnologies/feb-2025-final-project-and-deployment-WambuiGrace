@@ -61,8 +61,7 @@ BookNook is a web application designed to help users discover, track, and engage
 
 ## Deployment
 
-You can deploy BookNook using GitHub Pages, Netlify, or Vercel.  
-Just upload the project folder and set `index.html` as the entry point.
+Deployed on [Vercel](https://feb-2025-final-project-and-deployment-wambui-grace.vercel.app/)
 
 ---
 
@@ -87,13 +86,3 @@ Just upload the project folder and set `index.html` as the entry point.
 
 ---
 
-## License
-
-This project is for educational purposes.  
-Please replace book images and content if deploying publicly.
-
----
-
-## Contact
-
-For questions or suggestions, open an issue or contact the project maintainer.
