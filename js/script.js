@@ -28,6 +28,41 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
+    // Load more books functionality
+  const loadMoreButton = document.getElementById('load-more-books');
+  const hiddenBooks = document.querySelectorAll('.hidden-book');
+  
+  if(loadMoreButton) {
+    loadMoreButton.addEventListener('click', function() {
+      let areAllBooksVisible = true;
+      
+      // Show hidden books with animation
+      hiddenBooks.forEach((book, index) => {
+        if(book.classList.contains('hidden-book')) {
+          areAllBooksVisible = false;
+          
+          // Remove hidden class
+          book.classList.remove('hidden-book');
+          
+          // Add display grid and animation
+          book.style.display = 'block';
+          book.classList.add('fade-in');
+          
+          // Stagger the animations slightly
+          book.style.animationDelay = `${index * 0.1}s`;
+        }
+      });
+      
+      // If all books are now visible, change button text or hide it
+      if(!areAllBooksVisible) {
+        loadMoreButton.textContent = 'All Books Loaded';
+        loadMoreButton.disabled = true;
+        loadMoreButton.classList.add('bg-gray-400');
+        loadMoreButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      }
+    });
+  }
+
   // Render and manage reading list
   function renderToReadList() {
     const container = document.getElementById("to-read-dynamic")
