@@ -344,6 +344,110 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCurrentlyReadingList()
   renderCompletedList()
 
+
+  // --- May Reading Challenge Modal & Genres Read Section ---
+
+  const genreColors = {
+    "Mystery": "bg-book-green/20 text-book-green",
+    "Biography": "bg-book-orange/20 text-book-orange",
+    "Sci-Fi": "bg-book-green/20 text-book-green",
+    "Fantasy": "bg-book-red/20 text-book-red",
+    "Historical": "bg-book-yellow/20 text-book-yellow"
+  };
+  const genres = ["Mystery", "Biography", "Sci-Fi", "Fantasy", "Historical"];
+
+  // Keep checked genres in memory (or use localStorage for persistence)
+  let checkedGenres = JSON.parse(localStorage.getItem("checkedGenres")) || [];
+
+  // Render genres in the "Genres Read" section
+  function renderGenresRead() {
+    const container = document.getElementById("genres-read-list")
+    if (!container) return
+    container.innerHTML = checkedGenres.length
+      ? checkedGenres
+          .map((genre) => `<span class="px-2 py-1 rounded text-xs font-bold ${genreColors[genre]}">${genre}</span>`)
+          .join("")
+      : '<span class="text-gray-400 text-xs">No genres selected yet.</span>'
+
+    // Update progress text and bar
+    const progressText = document.getElementById("genre-progress-text")
+    const progressBar = document.getElementById("genre-progress-bar")
+
+    if (progressText && progressBar) {
+      progressText.textContent = `${checkedGenres.length}/5 genres`
+      const progressPercentage = (checkedGenres.length / 5) * 100
+      progressBar.style.width = `${progressPercentage}%`
+    }
+  }
+
+  // Modal creation
+  function createChallengeModal() {
+    // Remove any existing modal
+    document.getElementById('challenge-modal')?.remove();
+
+    const modal = document.createElement('div');
+    modal.id = 'challenge-modal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+        <button id="close-challenge-modal" class="absolute top-2 right-2 text-gray-400 hover:text-book-red text-2xl font-bold">&times;</button>
+        <h2 class="text-2xl font-bold text-book-dark mb-4">May Genre Challenge</h2>
+        <div id="genre-checklist" class="flex flex-wrap gap-2 mb-4">
+          ${genres.map((genre) => `
+            <button type="button"
+              class="genre-check-btn ${checkedGenres.includes(genre) ? genreColors[genre] : 'bg-gray-200 text-gray-500'} px-2 py-1 rounded text-xs flex items-center transition-colors"
+              data-genre="${genre}">
+              <span>${genre}</span>
+              <span class="ml-1 genre-tick" style="display:${checkedGenres.includes(genre) ? 'inline' : 'none'}">&#10003;</span>
+            </button>
+          `).join('')}
+        </div>
+        <div class="mt-6 text-right">
+          <button id="close-challenge-modal-2" class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-4 rounded-full transition-colors">Close</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Close modal handlers
+    document.getElementById('close-challenge-modal').onclick = () => modal.remove();
+    document.getElementById('close-challenge-modal-2').onclick = () => modal.remove();
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+
+    // Checklist logic
+    modal.querySelectorAll('.genre-check-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const genre = this.getAttribute('data-genre');
+        const tick = this.querySelector('.genre-tick');
+        const isChecked = checkedGenres.includes(genre);
+
+        if (isChecked) {
+          checkedGenres = checkedGenres.filter(g => g !== genre);
+          this.className = "genre-check-btn bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs flex items-center transition-colors";
+          tick.style.display = 'none';
+        } else {
+          checkedGenres.push(genre);
+          this.className = `genre-check-btn ${genreColors[genre]} px-2 py-1 rounded text-xs flex items-center transition-colors`;
+          tick.style.display = 'inline';
+        }
+        renderGenresRead();
+      });
+    });
+  }
+
+  // Attach event listener to the "View Details" button
+  const viewDetailsBtn = document.querySelector('#challenges button.bg-book-green');
+  if (viewDetailsBtn) {
+    viewDetailsBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      createChallengeModal();
+    });
+  }
+
+  // Initial render
+  renderGenresRead();
+
+
   // ========== PUZZLE FUNCTIONALITY ==========
   // (Keep all your existing puzzle code exactly as is)
   const puzzleTabs = document.querySelectorAll(".puzzle-tab")
@@ -372,25 +476,6 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
-  // --- Add to Reading List functionality ---
-  document.querySelectorAll(".add-to-list-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const book = {
-        title: btn.getAttribute("data-title"),
-        author: btn.getAttribute("data-author"),
-        cover: btn.getAttribute("data-cover"),
-      }
-      const readingList = JSON.parse(localStorage.getItem("readingList")) || []
-      // Avoid duplicates
-      if (!readingList.some((b) => b.title === book.title && b.author === book.author)) {
-        readingList.push(book)
-        localStorage.setItem("readingList", JSON.stringify(readingList))
-        alert(`"${book.title}" added to your reading list!`)
-      } else {
-        alert("This book is already in your reading list.")
-      }
-    })
-  })
 
   // Codebreaker Puzzle
   const shiftInput = document.getElementById("shift-value")
@@ -1029,5 +1114,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
+
 })
 
