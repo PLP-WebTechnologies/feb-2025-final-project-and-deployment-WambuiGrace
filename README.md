@@ -61,7 +61,7 @@ BookNook is a web application designed to help users discover, track, and engage
 
 ## Deployment
 
-Deployed on [Vercel](https://feb-2025-final-project-and-deployment-wambui-grace.vercel.app/)
+Deployed on [Netlify](https://booknook-nerd.netlify.app/)
 
 ---
 
@@ -83,6 +83,7 @@ Deployed on [Vercel](https://feb-2025-final-project-and-deployment-wambui-grace.
 - Book cover images: Used for demonstration purposes.
 - Icons: [Heroicons](https://heroicons.com/)
 - Fonts: [Google Fonts – Share Tech](https://fonts.google.com/specimen/Share+Tech)
+
 
 ---
 
