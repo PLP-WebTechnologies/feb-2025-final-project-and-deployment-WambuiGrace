@@ -108,22 +108,27 @@
                         <div class="mb-6">
                             <h4 class="font-bold text-book-dark mb-2">Where to Read:</h4>
                             <div class="flex flex-wrap gap-2">
-                                <a href="#" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition-colors">
-                                    <span class="font-bold">Free</span> - Project Gutenberg
+                                <a href="https://z-lib.id/book/the-midnight-library-5352355-zlibrary" class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm hover:bg-green-200 transition-colors">
+                                    <span class="font-bold">Free</span> - Z-Library
                                 </a>
-                                <a href="#" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 transition-colors">
+                                <a href="https://openlibrary.org/books/OL46542484M/-/borrow?action=locate" class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm hover:bg-blue-200 transition-colors">
                                     <span class="font-bold">Free</span> - Open Library
                                 </a>
-                                <a href="#" class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm hover:bg-orange-200 transition-colors">
-                                    <span class="font-bold">$9.99</span> - Amazon Kindle
+                                <a href="https://shorturl.at/9aazF" class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-sm hover:bg-orange-200 transition-colors">
+                                    <span class="font-bold">$9.54</span> - Amazon Kindle
                                 </a>
-                                <a href="#" class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm hover:bg-purple-200 transition-colors">
+                                <a href="https://shorturl.at/NCJ2S" class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm hover:bg-purple-200 transition-colors">
                                     <span class="font-bold">$11.99</span> - Google Books
                                 </a>
                             </div>
                         </div>
                         <div class="flex space-x-4">
-                            <button class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center">
+                            <button 
+                                class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-6 rounded-full transition-colors flex items-center add-to-list-btn"
+                                data-title="The Midnight Library"
+                                data-author="Matt Haig"
+                                data-cover="images/midnight-library.jpg"
+                            >
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                 </svg>
@@ -355,7 +360,7 @@
             
             <!-- To Read List (Default Active) -->
             <div id="to-read-list" class="reading-list-content">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div id="to-read-dynamic" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     <!-- Book Item 1 -->
                     <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
                         <div class="flex p-4">
@@ -430,72 +435,18 @@
                 </div>
                 
                 <div class="mt-6 text-center">
-                    <p class="text-gray-500 text-sm">You have 3 books in your "To Read" list</p>
+                    <p class="text-gray-500 text-sm" id="to-read-count"></p>
                 </div>
             </div>
             
             <!-- Currently Reading List (Initially Hidden) -->
-            <div id="reading-list" class="reading-list-content hidden">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    <!-- Book Item 1 -->
-                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex p-4">
-                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
-                            <div class="ml-4 flex-1">
-                                <h3 class="font-bold text-lg mb-1">The Midnight Library</h3>
-                                <p class="text-gray-600 text-sm mb-2">by Matt Haig</p>
-                                <div class="mb-2">
-                                    <div class="flex justify-between text-xs text-gray-600 mb-1">
-                                        <span>Progress</span>
-                                        <span>42%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="bg-book-green h-2.5 rounded-full" style="width: 42%"></div>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-1 px-3 rounded-full text-xs transition-colors">
-                                        Update Progress
-                                    </button>
-                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
-                                        Mark Complete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Book Item 2 -->
-                    <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-                        <div class="flex p-4">
-                            <img src="/placeholder.svg?height=120&width=80" alt="Book Cover" class="w-20 h-30 object-cover rounded">
-                            <div class="ml-4 flex-1">
-                                <h3 class="font-bold text-lg mb-1">Sapiens</h3>
-                                <p class="text-gray-600 text-sm mb-2">by Yuval Noah Harari</p>
-                                <div class="mb-2">
-                                    <div class="flex justify-between text-xs text-gray-600 mb-1">
-                                        <span>Progress</span>
-                                        <span>78%</span>
-                                    </div>
-                                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                                        <div class="bg-book-green h-2.5 rounded-full" style="width: 78%"></div>
-                                    </div>
-                                </div>
-                                <div class="flex justify-between items-center">
-                                    <button class="bg-book-yellow hover:bg-book-orange text-book-dark font-bold py-1 px-3 rounded-full text-xs transition-colors">
-                                        Update Progress
-                                    </button>
-                                    <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
-                                        Mark Complete
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+            <div id="reading-list-tab" class="reading-list-content hidden">
+                <div id="reading-list-content" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
                 </div>
                 
                 <div class="mt-6 text-center">
-                    <p class="text-gray-500 text-sm">You are currently reading 2 books</p>
+                    <p class="text-gray-500 text-sm" id="currently-reading-count"></p>
                 </div>
             </div>
             
