@@ -19,6 +19,9 @@ BookNook is a web application designed to help users discover, track, and engage
 
 - **Reading Challenges & Badges:**  
   Participate in monthly reading challenges and earn badges for your achievements.
+  - View your progress and earned badges.
+  - Click "View All Badges" to see a popup with all badges (including incomplete ones).
+  - Click a badge in the popup to toggle its completion status with an animated effect.
 
 - **Responsive Design:**  
   Fully responsive layout for desktop and mobile devices.
@@ -48,6 +51,7 @@ BookNook is a web application designed to help users discover, track, and engage
 
 - **Track Challenges:**  
   - View your progress in monthly reading challenges and see earned badges.
+  - Click "View Details" in the challenge card to open a modal and check off genres read.
 
 ---
 
@@ -55,7 +59,7 @@ BookNook is a web application designed to help users discover, track, and engage
 
 - **HTML5** – Semantic markup for structure
 - **CSS3 & Tailwind CSS** – Styling and responsive design
-- **JavaScript (ES6)** – Interactivity and local storage management
+- **JavaScript** – Interactivity and local storage management
 
 ---
 
@@ -83,6 +87,11 @@ Deployed on [Netlify](https://booknook-nerd.netlify.app/)
 - Book cover images: Used for demonstration purposes.
 - Icons: [Heroicons](https://heroicons.com/)
 - Fonts: [Google Fonts – Share Tech](https://fonts.google.com/specimen/Share+Tech)
+- Book sources and links:  
+  - [Amazon Books](https://www.amazon.com/books-used-books-textbooks/b?ie=UTF8&node=283155)  
+  - [Google Books](https://books.google.com/)  
+  - [Open Library](https://openlibrary.org/)  
+  - [Z-Library](https://z-lib.id/)
 
 
 ---
