@@ -28,39 +28,39 @@ document.addEventListener("DOMContentLoaded", () => {
     })
   })
 
-    // Load more books functionality
-  const loadMoreButton = document.getElementById('load-more-books');
-  const hiddenBooks = document.querySelectorAll('.hidden-book');
-  
-  if(loadMoreButton) {
-    loadMoreButton.addEventListener('click', function() {
-      let areAllBooksVisible = true;
-      
+  // Load more books functionality
+  const loadMoreButton = document.getElementById("load-more-books")
+  const hiddenBooks = document.querySelectorAll(".hidden-book")
+
+  if (loadMoreButton) {
+    loadMoreButton.addEventListener("click", () => {
+      let areAllBooksVisible = true
+
       // Show hidden books with animation
       hiddenBooks.forEach((book, index) => {
-        if(book.classList.contains('hidden-book')) {
-          areAllBooksVisible = false;
-          
+        if (book.classList.contains("hidden-book")) {
+          areAllBooksVisible = false
+
           // Remove hidden class
-          book.classList.remove('hidden-book');
-          
+          book.classList.remove("hidden-book")
+
           // Add display grid and animation
-          book.style.display = 'block';
-          book.classList.add('fade-in');
-          
+          book.style.display = "block"
+          book.classList.add("fade-in")
+
           // Stagger the animations slightly
-          book.style.animationDelay = `${index * 0.1}s`;
+          book.style.animationDelay = `${index * 0.1}s`
         }
-      });
-      
+      })
+
       // If all books are now visible, change button text or hide it
-      if(!areAllBooksVisible) {
-        loadMoreButton.textContent = 'All Books Loaded';
-        loadMoreButton.disabled = true;
-        loadMoreButton.classList.add('bg-gray-400');
-        loadMoreButton.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+      if (!areAllBooksVisible) {
+        loadMoreButton.textContent = "All Books Loaded"
+        loadMoreButton.disabled = true
+        loadMoreButton.classList.add("bg-gray-400")
+        loadMoreButton.classList.remove("bg-blue-600", "hover:bg-blue-700")
       }
-    });
+    })
   }
 
   // Render and manage reading list
@@ -187,12 +187,13 @@ document.addEventListener("DOMContentLoaded", () => {
         // Remove from currently reading
         currentlyReading.splice(idx, 1)
         localStorage.setItem("currentlyReading", JSON.stringify(currentlyReading))
-        // Add to completed with completion date
+        // Add to completed with completion date and default rating
         if (!completedList.some((b) => b.title === book.title && b.author === book.author)) {
           const today = new Date()
           const completedBook = {
             ...book,
             completedDate: today.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }),
+            rating: 3, // Default rating of 3 stars
           }
           completedList.push(completedBook)
           localStorage.setItem("completedList", JSON.stringify(completedList))
@@ -237,6 +238,18 @@ document.addEventListener("DOMContentLoaded", () => {
       completedGrid.innerHTML = ""
 
       completedList.forEach((book, idx) => {
+        // Set default rating if not present
+        if (book.rating === undefined) {
+          book.rating = 3
+        }
+
+        // Generate star rating HTML
+        let starsHtml = ""
+        for (let i = 1; i <= 5; i++) {
+          const starClass = i <= book.rating ? "text-book-yellow" : "text-gray-300"
+          starsHtml += `<span class="star-rating cursor-pointer ${starClass}" data-idx="${idx}" data-rating="${i}">★</span>`
+        }
+
         completedGrid.innerHTML += `
           <div class="bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
             <div class="flex p-4">
@@ -244,12 +257,12 @@ document.addEventListener("DOMContentLoaded", () => {
               <div class="ml-4 flex-1">
                 <h3 class="font-bold text-lg mb-1">${book.title}</h3>
                 <p class="text-gray-600 text-sm mb-2">by ${book.author}</p>
-                <div class="flex mb-2">
-                  <div class="text-book-yellow">★★★★★</div>
+                <div class="flex mb-2 text-xl">
+                  ${starsHtml}
                 </div>
                 <p class="text-gray-500 text-xs mb-3">Completed on ${book.completedDate}</p>
                 <div class="flex justify-between items-center">
-                  <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors">
+                  <button class="bg-book-orange hover:bg-book-red text-white font-bold py-1 px-3 rounded-full text-xs transition-colors write-review-btn" data-idx="${idx}">
                     Write Review
                   </button>
                   <button class="bg-book-green hover:bg-book-dark text-white font-bold py-1 px-3 rounded-full text-xs transition-colors read-again-btn" data-idx="${idx}">
@@ -262,13 +275,81 @@ document.addEventListener("DOMContentLoaded", () => {
         `
       })
 
-    // Update the completed count dynamically
-    const countText = document.getElementById("completed-count")
-    if (countText) {
-      countText.textContent = completedList.length === 1
-        ? "You have completed 1 book"
-        : `You have completed ${completedList.length} books`
-    }
+      // Update the completed count dynamically
+      const countText = document.getElementById("completed-count")
+      if (countText) {
+        countText.textContent =
+          completedList.length === 1 ? "You have completed 1 book" : `You have completed ${completedList.length} books`
+      }
+
+      // Add event listeners for star ratings
+      completedGrid.querySelectorAll(".star-rating").forEach((star) => {
+        star.addEventListener("click", function () {
+          const idx = Number.parseInt(this.getAttribute("data-idx"))
+          const rating = Number.parseInt(this.getAttribute("data-rating"))
+          const completedList = JSON.parse(localStorage.getItem("completedList")) || []
+
+          // Update the rating
+          completedList[idx].rating = rating
+          localStorage.setItem("completedList", JSON.stringify(completedList))
+
+          // Re-render to show the updated rating
+          renderCompletedList()
+        })
+
+        // Add hover effect
+        star.addEventListener("mouseenter", function () {
+          const rating = Number.parseInt(this.getAttribute("data-rating"))
+          const idx = Number.parseInt(this.getAttribute("data-idx"))
+          const stars = document.querySelectorAll(`.star-rating[data-idx="${idx}"]`)
+
+          stars.forEach((s, i) => {
+            if (i < rating) {
+              s.classList.add("text-book-yellow")
+              s.classList.remove("text-gray-300")
+            } else {
+              s.classList.add("text-gray-300")
+              s.classList.remove("text-book-yellow")
+            }
+          })
+        })
+
+        // Reset on mouse leave
+        star.addEventListener("mouseleave", function () {
+          const idx = Number.parseInt(this.getAttribute("data-idx"))
+          const completedList = JSON.parse(localStorage.getItem("completedList")) || []
+          const currentRating = completedList[idx].rating || 0
+          const stars = document.querySelectorAll(`.star-rating[data-idx="${idx}"]`)
+
+          stars.forEach((s, i) => {
+            if (i < currentRating) {
+              s.classList.add("text-book-yellow")
+              s.classList.remove("text-gray-300")
+            } else {
+              s.classList.add("text-gray-300")
+              s.classList.remove("text-book-yellow")
+            }
+          })
+        })
+      })
+
+      // Add event listeners for Write Review buttons
+      completedGrid.querySelectorAll(".write-review-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const idx = Number.parseInt(btn.getAttribute("data-idx"))
+          const completedList = JSON.parse(localStorage.getItem("completedList")) || []
+          const book = completedList[idx]
+
+          // Show a simple prompt for now, but could be replaced with a modal
+          const review = prompt(`Write your review for "${book.title}":`, book.review || "")
+
+          if (review !== null) {
+            completedList[idx].review = review
+            localStorage.setItem("completedList", JSON.stringify(completedList))
+            alert("Review saved successfully!")
+          }
+        })
+      })
 
       // Add event listeners for Read Again buttons
       completedGrid.querySelectorAll(".read-again-btn").forEach((btn) => {
@@ -344,20 +425,19 @@ document.addEventListener("DOMContentLoaded", () => {
   renderCurrentlyReadingList()
   renderCompletedList()
 
-
   // --- May Reading Challenge Modal & Genres Read Section ---
 
   const genreColors = {
-    "Mystery": "bg-book-green/20 text-book-green",
-    "Biography": "bg-book-orange/20 text-book-orange",
+    Mystery: "bg-book-green/20 text-book-green",
+    Biography: "bg-book-orange/20 text-book-orange",
     "Sci-Fi": "bg-book-green/20 text-book-green",
-    "Fantasy": "bg-book-red/20 text-book-red",
-    "Historical": "bg-book-yellow/20 text-book-yellow"
-  };
-  const genres = ["Mystery", "Biography", "Sci-Fi", "Fantasy", "Historical"];
+    Fantasy: "bg-book-red/20 text-book-red",
+    Historical: "bg-book-yellow/20 text-book-yellow",
+  }
+  const genres = ["Mystery", "Biography", "Sci-Fi", "Fantasy", "Historical"]
 
   // Keep checked genres in memory (or use localStorage for persistence)
-  let checkedGenres = JSON.parse(localStorage.getItem("checkedGenres")) || [];
+  let checkedGenres = JSON.parse(localStorage.getItem("checkedGenres")) || []
 
   // Render genres in the "Genres Read" section
   function renderGenresRead() {
@@ -383,70 +463,378 @@ document.addEventListener("DOMContentLoaded", () => {
   // Modal creation
   function createChallengeModal() {
     // Remove any existing modal
-    document.getElementById('challenge-modal')?.remove();
+    document.getElementById("challenge-modal")?.remove()
 
-    const modal = document.createElement('div');
-    modal.id = 'challenge-modal';
-    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40';
+    const modal = document.createElement("div")
+    modal.id = "challenge-modal"
+    modal.className = "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
     modal.innerHTML = `
       <div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
         <button id="close-challenge-modal" class="absolute top-2 right-2 text-gray-400 hover:text-book-red text-2xl font-bold">&times;</button>
         <h2 class="text-2xl font-bold text-book-dark mb-4">May Genre Challenge</h2>
         <div id="genre-checklist" class="flex flex-wrap gap-2 mb-4">
-          ${genres.map((genre) => `
+          ${genres
+            .map(
+              (genre) => `
             <button type="button"
-              class="genre-check-btn ${checkedGenres.includes(genre) ? genreColors[genre] : 'bg-gray-200 text-gray-500'} px-2 py-1 rounded text-xs flex items-center transition-colors"
+              class="genre-check-btn ${checkedGenres.includes(genre) ? genreColors[genre] : "bg-gray-200 text-gray-500"} px-2 py-1 rounded text-xs flex items-center transition-colors"
               data-genre="${genre}">
               <span>${genre}</span>
-              <span class="ml-1 genre-tick" style="display:${checkedGenres.includes(genre) ? 'inline' : 'none'}">&#10003;</span>
+              <span class="ml-1 genre-tick" style="display:${checkedGenres.includes(genre) ? "inline" : "none"}">&#10003;</span>
             </button>
-          `).join('')}
+          `,
+            )
+            .join("")}
         </div>
         <div class="mt-6 text-right">
           <button id="close-challenge-modal-2" class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-4 rounded-full transition-colors">Close</button>
         </div>
       </div>
-    `;
-    document.body.appendChild(modal);
+    `
+    document.body.appendChild(modal)
 
     // Close modal handlers
-    document.getElementById('close-challenge-modal').onclick = () => modal.remove();
-    document.getElementById('close-challenge-modal-2').onclick = () => modal.remove();
-    modal.addEventListener('click', (e) => { if (e.target === modal) modal.remove(); });
+    document.getElementById("close-challenge-modal").onclick = () => modal.remove()
+    document.getElementById("close-challenge-modal-2").onclick = () => modal.remove()
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.remove()
+    })
 
     // Checklist logic
-    modal.querySelectorAll('.genre-check-btn').forEach(btn => {
-      btn.addEventListener('click', function () {
-        const genre = this.getAttribute('data-genre');
-        const tick = this.querySelector('.genre-tick');
-        const isChecked = checkedGenres.includes(genre);
+    modal.querySelectorAll(".genre-check-btn").forEach((btn) => {
+      btn.addEventListener("click", function () {
+        const genre = this.getAttribute("data-genre")
+        const tick = this.querySelector(".genre-tick")
+        const isChecked = checkedGenres.includes(genre)
 
         if (isChecked) {
-          checkedGenres = checkedGenres.filter(g => g !== genre);
-          this.className = "genre-check-btn bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs flex items-center transition-colors";
-          tick.style.display = 'none';
+          checkedGenres = checkedGenres.filter((g) => g !== genre)
+          this.className =
+            "genre-check-btn bg-gray-200 text-gray-500 px-2 py-1 rounded text-xs flex items-center transition-colors"
+          tick.style.display = "none"
         } else {
-          checkedGenres.push(genre);
-          this.className = `genre-check-btn ${genreColors[genre]} px-2 py-1 rounded text-xs flex items-center transition-colors`;
-          tick.style.display = 'inline';
+          checkedGenres.push(genre)
+          this.className = `genre-check-btn ${genreColors[genre]} px-2 py-1 rounded text-xs flex items-center transition-colors`
+          tick.style.display = "inline"
         }
-        renderGenresRead();
-      });
-    });
+        renderGenresRead()
+      })
+    })
   }
 
   // Attach event listener to the "View Details" button
-  const viewDetailsBtn = document.querySelector('#challenges button.bg-book-green');
+  const viewDetailsBtn = document.querySelector("#challenges button.bg-book-green")
   if (viewDetailsBtn) {
-    viewDetailsBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      createChallengeModal();
-    });
+    viewDetailsBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      createChallengeModal()
+    })
   }
 
   // Initial render
-  renderGenresRead();
+  renderGenresRead()
 
+  // In the createBadgesModal function, modify the badge colors and completion logic
+  function createBadgesModal() {
+    // Remove any existing modal
+    document.getElementById("badges-modal")?.remove()
+
+    // Get saved badge status from localStorage
+    const savedBadges = JSON.parse(localStorage.getItem("userBadges")) || {}
+
+    // Get checked genres from localStorage
+    const checkedGenres = JSON.parse(localStorage.getItem("checkedGenres")) || []
+
+    // Define badge requirements based on genres
+    const badgeRequirements = {
+      "Mystery Solver": "Mystery",
+      Bookworm: true, // Always available to complete
+      "Genre Explorer": checkedGenres.length >= 5, // Requires all 5 genres
+      "Speed Reader": "Sci-Fi",
+      "Classic Collector": "Historical",
+      "Nonfiction Novice": "Biography",
+    }
+
+    // Example badges with unique icons - now tied to genre completion
+    const badges = [
+      {
+        name: "Mystery Solver",
+        icon: "search",
+        complete: savedBadges["Mystery Solver"] || false,
+        description: "Complete a Mystery genre book",
+      },
+      {
+        name: "Bookworm",
+        icon: "book-open",
+        complete: savedBadges["Bookworm"] || false,
+        description: "Read your first book",
+      },
+      {
+        name: "Genre Explorer",
+        icon: "compass",
+        complete: savedBadges["Genre Explorer"] || false,
+        description: "Read books from all 5 genres",
+      },
+      {
+        name: "Speed Reader",
+        icon: "zap",
+        complete: savedBadges["Speed Reader"] || false,
+        description: "Complete a Sci-Fi genre book",
+      },
+      {
+        name: "Classic Collector",
+        icon: "bookmark",
+        complete: savedBadges["Classic Collector"] || false,
+        description: "Complete a Historical genre book",
+      },
+      {
+        name: "Nonfiction Novice",
+        icon: "coffee",
+        complete: savedBadges["Nonfiction Novice"] || false,
+        description: "Complete a Biography genre book",
+      },
+    ]
+
+    const modal = document.createElement("div")
+    modal.id = "badges-modal"
+    modal.className = "fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+    modal.innerHTML = `
+<div class="bg-white rounded-lg shadow-xl max-w-md w-full p-6 relative">
+  <button id="close-badges-modal" class="absolute top-2 right-2 text-gray-400 hover:text-book-red text-2xl font-bold">&times;</button>
+  <h2 class="text-2xl font-bold text-book-dark mb-4">Your Badges</h2>
+  <div class="grid grid-cols-2 gap-4 mb-4">
+    ${badges
+      .map(
+        (badge) => `
+      <div class="badge ${badge.name === "Bookworm" && badge.complete ? "bg-book-orange text-white" : "bg-gray-200 text-gray-500"} rounded-lg p-3 text-center shadow-sm cursor-pointer transition-all duration-300" data-complete="${badge.complete}" data-name="${badge.name}">
+        <div class="mb-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 mx-auto badge-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            ${getIconPath(badge.icon)}
+            ${badge.complete ? '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4-4" />' : ""}
+          </svg>
+        </div>
+        <p class="text-xs font-bold">${badge.name}</p>
+        <p class="text-xs">${badge.description}</p>
+        ${!badge.complete ? '<p class="text-xs">(Incomplete)</p>' : ""}
+      </div>
+    `,
+      )
+      .join("")}
+  </div>
+  <div class="mt-6 text-right">
+    <button id="close-badges-modal-2" class="bg-book-green hover:bg-book-dark text-white font-bold py-2 px-4 rounded-full transition-colors">Close</button>
+  </div>
+</div>
+`
+    document.body.appendChild(modal)
+
+    // Close modal handlers
+    document.getElementById("close-badges-modal").onclick = () => modal.remove()
+    document.getElementById("close-badges-modal-2").onclick = () => modal.remove()
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.remove()
+    })
+
+    // Add click functionality to toggle badge completion status with animation
+    modal.querySelectorAll(".badge").forEach((badge) => {
+      badge.addEventListener("click", function () {
+        const isComplete = this.getAttribute("data-complete") === "true"
+        const badgeName = this.getAttribute("data-name")
+
+        if (!isComplete) {
+          // Check if badge can be completed based on genre requirements
+          let canComplete = false
+
+          if (badgeName === "Bookworm") {
+            // Bookworm can always be completed
+            canComplete = true
+          } else if (badgeName === "Genre Explorer") {
+            // Genre Explorer requires all 5 genres
+            canComplete = checkedGenres.length >= 5
+          } else {
+            // Other badges require specific genres
+            const requiredGenre = badgeRequirements[badgeName]
+            canComplete = checkedGenres.includes(requiredGenre)
+          }
+
+          if (!canComplete) {
+            // Show message that badge cannot be completed yet
+            const incompleteMessage = document.createElement("div")
+            incompleteMessage.className =
+              "fixed bottom-4 right-4 bg-book-red text-white p-4 rounded-lg shadow-lg z-50 badge-notification"
+            incompleteMessage.innerHTML = `
+            <div class="flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p>You haven't met the requirements for the "${badgeName}" badge yet!</p>
+            </div>
+          `
+            document.body.appendChild(incompleteMessage)
+
+            // Remove the message after 3 seconds
+            setTimeout(() => {
+              incompleteMessage.classList.add("fade-out")
+              setTimeout(() => {
+                incompleteMessage.remove()
+              }, 500)
+            }, 3000)
+
+            return
+          }
+
+          // Add animation class
+          this.classList.add("badge-animation")
+
+          // Change from incomplete to complete with animation
+          this.style.transform = "scale(1.1)"
+          setTimeout(() => {
+            this.style.transform = "scale(1)"
+
+            // Only change color for Bookworm badge
+            if (badgeName === "Bookworm") {
+              this.classList.remove("bg-gray-200", "text-gray-500")
+              this.classList.add("bg-book-orange", "text-white")
+            }
+
+            // Update the checkmark in the icon
+            const icon = this.querySelector(".badge-icon")
+            if (icon) {
+              const checkmark = document.createElementNS("http://www.w3.org/2000/svg", "path")
+              checkmark.setAttribute("stroke-linecap", "round")
+              checkmark.setAttribute("stroke-linejoin", "round")
+              checkmark.setAttribute("stroke-width", "2")
+              checkmark.setAttribute("d", "M9 12l2 2l4-4")
+              icon.appendChild(checkmark)
+            }
+
+            // Remove "Incomplete" text
+            const incompleteText = this.querySelector("p:last-child")
+            if (incompleteText && incompleteText.textContent.includes("Incomplete")) {
+              incompleteText.remove()
+            }
+
+            this.setAttribute("data-complete", "true")
+
+            // Save to localStorage
+            const savedBadges = JSON.parse(localStorage.getItem("userBadges")) || {}
+            savedBadges[badgeName] = true
+            localStorage.setItem("userBadges", JSON.stringify(savedBadges))
+
+            // If this is the Genre Explorer badge, also update the challenge UI
+            if (badgeName === "Genre Explorer") {
+              const genreExplorerBadge = document.querySelector(".badge.bg-gray-300")
+              if (genreExplorerBadge) {
+                // Keep it gray but add checkmark
+                const inProgressText = genreExplorerBadge.querySelector("p:last-child")
+                if (inProgressText && inProgressText.textContent.includes("In Progress")) {
+                  inProgressText.remove()
+                }
+              }
+            }
+
+            // Show a success message
+            const successMessage = document.createElement("div")
+            successMessage.className =
+              "fixed bottom-4 right-4 bg-book-green text-white p-4 rounded-lg shadow-lg z-50 badge-notification"
+            successMessage.innerHTML = `
+        <div class="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2l4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p>Congratulations! You've earned the "${badgeName}" badge!</p>
+        </div>
+      `
+            document.body.appendChild(successMessage)
+
+            // Remove the message after 3 seconds
+            setTimeout(() => {
+              successMessage.classList.add("fade-out")
+              setTimeout(() => {
+                successMessage.remove()
+              }, 500)
+            }, 3000)
+          }, 300)
+        }
+      })
+    })
+  }
+
+  // Update the updateBadgesDisplay function to only color the Bookworm badge
+  function updateBadgesDisplay() {
+    const savedBadges = JSON.parse(localStorage.getItem("userBadges")) || {}
+
+    // Update badges in the challenges section
+    const badgeElements = document.querySelectorAll(".badge")
+    badgeElements.forEach((badge) => {
+      const badgeName = badge.querySelector("p.text-xs.font-bold")?.textContent
+      if (badgeName && savedBadges[badgeName]) {
+        // Add checkmark but keep gray for all except Bookworm
+        if (badgeName === "Bookworm") {
+          badge.classList.remove("bg-gray-300", "text-gray-500")
+          badge.classList.add("bg-book-orange", "text-white")
+        }
+
+        // Remove "In Progress" text if it exists
+        const inProgressText = badge.querySelector("p:last-child")
+        if (inProgressText && inProgressText.textContent.includes("In Progress")) {
+          inProgressText.remove()
+        }
+      }
+    })
+  }
+
+  // Call this function when the page loads
+  document.addEventListener("DOMContentLoaded", () => {
+    // Keep all existing DOMContentLoaded code
+
+    // Add this at the end of the existing DOMContentLoaded function
+    updateBadgesDisplay()
+  })
+
+  // Helper function to get the appropriate SVG path for each icon
+  function getIconPath(icon) {
+    switch (icon) {
+      case "search":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />'
+      case "book-open":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />'
+      case "compass":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />'
+      case "zap":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />'
+      case "bookmark":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z" />'
+      case "coffee":
+        return '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h18v5a2 2 0 01-2 2H5a2 2 0 01-2-2V3zm14 10v2a6 6 0 01-6 6H7a6 6 0 01-6-6v-2h16z M8 10v5 M12 10v5" />'
+      default:
+        return '<circle cx="12" cy="12" r="10" stroke-width="2" stroke="currentColor" fill="none"/>'
+    }
+  }
+
+  // Add CSS for the badge animation
+  const style = document.createElement("style")
+  style.textContent = `
+    .badge-animation {
+      transition: all 0.3s ease-in-out;
+    }
+    
+    @keyframes badgeComplete {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+  `
+  document.head.appendChild(style)
+
+  // Attach event listener to the "View All Badges" button
+  const viewAllBadgesBtn = document.getElementById("view-all-badges-btn")
+  if (viewAllBadgesBtn) {
+    viewAllBadgesBtn.addEventListener("click", (e) => {
+      e.preventDefault()
+      createBadgesModal()
+    })
+  }
 
   // ========== PUZZLE FUNCTIONALITY ==========
   // (Keep all your existing puzzle code exactly as is)
@@ -475,7 +863,6 @@ document.addEventListener("DOMContentLoaded", () => {
       document.getElementById(`${tabName}-puzzle`).classList.remove("hidden")
     })
   })
-
 
   // Codebreaker Puzzle
   const shiftInput = document.getElementById("shift-value")
@@ -1114,6 +1501,69 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     })
   }
-
 })
 
+// Add this CSS for the badge notification
+const notificationStyle = document.createElement("style")
+notificationStyle.textContent = `
+  .badge-notification {
+    animation: slideIn 0.5s ease-out forwards;
+  }
+  
+  .fade-out {
+    animation: fadeOut 0.5s ease-out forwards;
+  }
+  
+  @keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+  }
+  
+  @keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+  }
+  
+  /* Star rating styles */
+  .star-rating {
+    cursor: pointer;
+    transition: color 0.2s ease;
+  }
+  
+  .star-rating:hover {
+    transform: scale(1.2);
+  }
+`
+document.head.appendChild(notificationStyle)
+
+// Also update the updateBadgesDisplay function to use the new badge colors
+function updateBadgesDisplay() {
+  const savedBadges = JSON.parse(localStorage.getItem("userBadges")) || {}
+
+  // Update badges in the challenges section
+  const badgeElements = document.querySelectorAll(".badge")
+  badgeElements.forEach((badge) => {
+    const badgeName = badge.querySelector("p.text-xs.font-bold")?.textContent
+    if (badgeName && savedBadges[badgeName]) {
+      // Add checkmark but keep gray for all except Bookworm
+      if (badgeName === "Bookworm") {
+        badge.classList.remove("bg-gray-300", "text-gray-500")
+        badge.classList.add("bg-book-orange", "text-white")
+      }
+
+      // Remove "In Progress" text if it exists
+      const inProgressText = badge.querySelector("p:last-child")
+      if (inProgressText && inProgressText.textContent.includes("In Progress")) {
+        inProgressText.remove()
+      }
+    }
+  })
+}
+
+// Call this function when the page loads
+document.addEventListener("DOMContentLoaded", () => {
+  // Keep all existing DOMContentLoaded code
+
+  // Add this at the end of the existing DOMContentLoaded function
+  updateBadgesDisplay()
+})
